@@ -56,3 +56,14 @@ fn missing_file_gives_defaults() {
         Ok(())
     });
 }
+
+#[test]
+fn default_yaml_matches_compiled_defaults() {
+    use convodump_core::config::ConvodumpConfig;
+    use figment::providers::{Format, Yaml};
+    let parsed: ConvodumpConfig = figment::Figment::new()
+        .merge(Yaml::string(include_str!("../../../config/default.yaml")))
+        .extract()
+        .unwrap();
+    assert_eq!(parsed, ConvodumpConfig::default());
+}

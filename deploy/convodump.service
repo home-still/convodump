@@ -1,0 +1,11 @@
+[Unit]
+Description=ConvoDump transcription server
+After=network-online.target
+
+[Service]
+ExecStart=%h/.local/bin/convodump server run
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

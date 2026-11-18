@@ -1,0 +1,93 @@
+name: Release ConvoDump
+
+on:
+  push:
+    tags: ["v*"]
+
+# Nothing is writable by default; each job asks for exactly what it needs.
+permissions: {}
+
+# One run per tag; never cancel one half-way.
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  TOOL: convodump
+
+jobs:
+  gate:
+    name: Gate (ci.yaml)
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yaml
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: gate
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-14
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Install Rust toolchain (version from rust-toolchain.toml)
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustup target add ${{ matrix.target }}
+      - name: Tag must match the crate version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          crate="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          test "$TAG" = "v$crate" || { echo "tag $TAG != crate version v$crate"; exit 1; }
+      - run: cargo build --release --locked -p convodump --target ${{ matrix.target }}
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+          T: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          archive="${TOOL}-${TAG}-${T}.tar.gz"
+          tar czf "dist/${archive}" -C "target/${T}/release" "${TOOL}"
+          (cd dist && shasum -a 256 "${archive}" > "${archive}.sha256")
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ls -l dist
+          test "$(ls dist | wc -l)" -eq 4
+          gh release create "$TAG" --generate-notes dist/*

@@ -1,0 +1,33 @@
+# ConvoDump defaults. Copy the keys you change to ~/.home-still/convodump/config.yaml
+# (or $HOME_STILL_CONFIG_DIR/convodump/config.yaml). Env: HOME_STILL_CONVODUMP_<SECTION>__<KEY>.
+client:
+  # Base URL of the server `convodump media run` uploads to.
+  server_url: http://127.0.0.1:7450
+  # Bearer token; must equal the server's server.token.
+  token: ""
+  # Whole-request timeout in seconds (upload + transcription).
+  timeout_secs: 7200
+server:
+  # Address `convodump server run` listens on.
+  bind: 127.0.0.1:7450
+  # Bearer token clients must send; the server refuses to start with an empty one.
+  token: ""
+  # Largest accepted upload, in MiB.
+  max_upload_mb: 8192
+  # Scratch directory for jobs; each job's files are deleted when it ends.
+  work_dir: ~/.cache/home-still/convodump
+engine:
+  # nemo-speech binary (NeMo-Speech.cpp 0.3.0).
+  nemo_speech_bin: nemo-speech
+  # ffmpeg binary used to decode to 16 kHz mono PCM.
+  ffmpeg_bin: ffmpeg
+  # ffprobe binary used for media metadata.
+  ffprobe_bin: ffprobe
+  # ASR model.
+  asr_model: nvidia/nemotron-3.5-asr-streaming-0.6b
+  # Speaker diarization model.
+  diarization_model: nvidia/Nemotron-3-Diarization
+  # Language code, or "auto".
+  language: auto
+  # argv prefix placed before nemo_speech_bin (e.g. a GPU scheduler command); empty = none.
+  wrapper: []
