@@ -52,6 +52,10 @@ pub struct EngineConfig {
     pub language: String,
     /// argv prefix placed before `nemo_speech_bin` (e.g. a GPU scheduler).
     pub wrapper: Vec<String>,
+    /// Transcribe in offline (full-attention) chunks of at most this many seconds; 0 = one pass.
+    pub offline_chunk_max_s: f64,
+    /// Diarizer preset passed to `nemo-speech`; empty = the engine's own default.
+    pub diarization_preset: String,
 }
 
 impl Default for ClientConfig {
@@ -85,6 +89,10 @@ impl Default for EngineConfig {
             diarization_model: "nvidia/Nemotron-3-Diarization".into(),
             language: "auto".into(),
             wrapper: Vec::new(),
+            // Measured: the engine runs full-attention up to 390 s and cache-aware streaming (right
+            // context 1) above it, which costs about 1.2 WER points on conversational audio.
+            offline_chunk_max_s: 390.0,
+            diarization_preset: "v3-offline".into(),
         }
     }
 }

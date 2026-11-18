@@ -51,6 +51,11 @@ pub async fn status(
             "diarization {}",
             text(&health["engine"]["diarization_model"])
         );
+        println!(
+            "preset {}  recognition {}",
+            text(&health["engine"]["diarization_preset"]),
+            text(&health["engine"]["recognition_mode"])
+        );
         println!("busy {}", health["busy"].as_bool().unwrap_or(false));
     }
     SUCCESS
@@ -108,6 +113,13 @@ async fn prepare(cfg: &ConvodumpConfig) -> Result<(EngineInfo, std::path::PathBu
         version,
         asr_model: cfg.engine.asr_model.clone(),
         diarization_model: cfg.engine.diarization_model.clone(),
+        diarization_preset: cfg.engine.diarization_preset.clone(),
+        // Filled per job by `run_job`; startup reports what the configuration will ask for.
+        recognition_mode: if cfg.engine.offline_chunk_max_s > 0.0 {
+            "offline-chunked".into()
+        } else {
+            "offline".into()
+        },
         language_requested: cfg.engine.language.clone(),
     };
     Ok((info, work_dir))

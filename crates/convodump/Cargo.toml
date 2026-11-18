@@ -12,7 +12,7 @@ name = "convodump"
 path = "src/main.rs"
 
 [dependencies]
-convodump-core = { path = "../convodump-core", version = "0.1.0" }
+convodump-core = { path = "../convodump-core", version = "0.2.0" }
 hs-common = { git = "https://github.com/home-still/home", rev = "0fd52d6f201679250938d8308791afb86164b116", features = ["cli"] }
 anyhow.workspace = true
 axum.workspace = true

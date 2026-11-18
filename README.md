@@ -51,12 +51,12 @@ talk.m4a  duration 00:00:07.000  speakers 2  language en
 Exit codes: `0` success, `1` general error, `2` usage or configuration error, `3` server
 unreachable, `4` partial success (some files failed).
 
-## Output schema (`schema_version` 1)
+## Output schema (`schema_version` 2)
 
 ```json
 {
-  "schema_version": 1,
-  "convodump_version": "0.1.0",
+  "schema_version": 2,
+  "convodump_version": "0.2.0",
   "source": { "file_name": "talk.m4a", "size_bytes": 123456, "sha256": "…" },
   "media": {
     "format_name": "mov,mp4,m4a,3gp,3g2,mj2", "format_long_name": "QuickTime / MOV",
@@ -66,7 +66,9 @@ unreachable, `4` partial success (some files failed).
     "chapters": [],
     "transcribed_stream_index": 0
   },
-  "engine": { "name": "nemo-speech", "version": "…", "asr_model": "…", "diarization_model": "…", "language_requested": "auto" },
+  "engine": { "name": "nemo-speech", "version": "…", "asr_model": "…", "diarization_model": "…",
+              "diarization_preset": "v3-offline", "recognition_mode": "offline-chunked",
+              "language_requested": "auto" },
   "transcript": {
     "text": "alpha bravo charlie echo foxtrot",
     "languages": ["en"], "duration_s": 7.0, "confidence": 0.93,
@@ -76,12 +78,15 @@ unreachable, `4` partial success (some files failed).
     "words": [ { "index": 0, "text": "alpha", "start_s": 0.0, "end_s": 0.4, "confidence": 0.99, "speaker": "S1" } ],
     "unattributed_word_count": 0
   },
-  "timing": { "probe_ms": 40, "decode_ms": 300, "engine_ms": 2100, "total_ms": 2450 }
+  "timing": { "probe_ms": 40, "decode_ms": 300, "diarize_ms": 2400, "engine_ms": 2100, "total_ms": 4900 }
 }
 ```
 
 * Speaker ids (`S1`, `S2`, …) are anonymous labels; the tool never names anyone.
-* A new segment starts when the speaker changes or the same speaker pauses for more than 2 s.
+* A segment is one diarizer turn, and each word takes the turn it overlaps longest. When the
+  diarizer finds nothing, segments fall back to grouping words by speaker change or a pause over 2 s.
+* `engine.recognition_mode` is `offline-chunked` when the file was split for full-attention
+  recognition, `offline` when it fit in one pass.
 * `format.filename` from ffprobe is dropped: it is the server's temp path.
 * A transcript with text but no word timings is an error, not a degraded result.
 

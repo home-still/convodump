@@ -1,10 +1,10 @@
-//! The ConvoDump output document (schema version 1).
+//! The ConvoDump output document (schema version 2).
 
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 pub const ENGINE_NAME: &str = "nemo-speech";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -45,6 +45,10 @@ pub struct EngineInfo {
     pub version: String,
     pub asr_model: String,
     pub diarization_model: String,
+    /// Preset the diarizer ran with; empty when the engine's own default applied.
+    pub diarization_preset: String,
+    /// `offline-chunked`, `offline` or `streaming`.
+    pub recognition_mode: String,
     pub language_requested: String,
 }
 
@@ -79,8 +83,9 @@ pub struct Segment {
     pub start_tc: String,
     pub end_tc: String,
     pub text: String,
-    pub first_word: u32,
-    pub last_word: u32,
+    /// `None` when the turn carries no recognized word; the turn still marks the speech timeline.
+    pub first_word: Option<u32>,
+    pub last_word: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -97,6 +102,9 @@ pub struct Word {
 pub struct Timing {
     pub probe_ms: u64,
     pub decode_ms: u64,
+    /// Separate diarization pass.
+    pub diarize_ms: u64,
+    /// Recognition (all chunks).
     pub engine_ms: u64,
     pub total_ms: u64,
 }

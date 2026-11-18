@@ -15,6 +15,10 @@ pub fn render_text(doc: &ConvoDump) -> String {
         t.languages.join(",")
     );
     for s in &t.segments {
+        // A turn whose speech was not recognized still exists in the document; it has nothing to print.
+        if s.text.is_empty() {
+            continue;
+        }
         out.push_str(&format!(
             "[{} → {}] {}: {}\n",
             s.start_tc,

@@ -155,6 +155,8 @@ pub async fn health(State(state): State<AppState>) -> Json<Value> {
             "version": state.engine.version,
             "asr_model": state.engine.asr_model,
             "diarization_model": state.engine.diarization_model,
+            "diarization_preset": state.engine.diarization_preset,
+            "recognition_mode": state.engine.recognition_mode,
             "language": state.engine.language_requested,
         },
         "busy": state.busy(),

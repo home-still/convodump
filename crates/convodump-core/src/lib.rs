@@ -2,7 +2,9 @@
 //!
 //! Pipeline: `ffprobe` -> `ffmpeg` decode -> `nemo-speech` -> [`segments::build_transcript`].
 
+pub mod chunk;
 pub mod config;
+pub mod diarize;
 pub mod engine;
 pub mod error;
 pub mod models;
