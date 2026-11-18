@@ -1,0 +1,34 @@
+[package]
+name = "convodump"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "ConvoDump: media file to JSON with metadata, diarized speaker segments and time codes"
+
+[[bin]]
+name = "convodump"
+path = "src/main.rs"
+
+[dependencies]
+convodump-core = { path = "../convodump-core", version = "0.1.0" }
+hs-common = { git = "https://github.com/home-still/home", rev = "0fd52d6f201679250938d8308791afb86164b116", features = ["cli"] }
+anyhow.workspace = true
+axum.workspace = true
+clap.workspace = true
+futures-util.workspace = true
+mimalloc.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+subtle.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
