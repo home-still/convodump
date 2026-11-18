@@ -169,9 +169,27 @@ pub async fn transcribe(
         finish_transcribing(false);
         return Err(server_error(server_url, resp).await);
     }
-    let doc = resp.json::<ConvoDump>().await.map_err(|e| {
+    let body = resp.text().await.map_err(|e| {
         finish_transcribing(false);
-        ExitError::general("the server's answer is not a ConvoDump document").why(e.to_string())
+        ExitError::general("the server's answer could not be read").why(e.to_string())
+    })?;
+    let schema_version = serde_json::from_str::<serde_json::Value>(&body)
+        .ok()
+        .and_then(|v| v.get("schema_version").and_then(serde_json::Value::as_u64));
+    let doc = serde_json::from_str::<ConvoDump>(&body).map_err(|e| {
+        finish_transcribing(false);
+        match schema_version {
+            Some(v) if v != convodump_core::models::SCHEMA_VERSION as u64 => {
+                ExitError::general(format!(
+                    "the server answers with schema {v}, this client speaks schema {}",
+                    convodump_core::models::SCHEMA_VERSION
+                ))
+                .why(e.to_string())
+                .fix("upgrade this client with the installer from the ConvoDump repository")
+            }
+            _ => ExitError::general("the server's answer is not a ConvoDump document")
+                .why(e.to_string()),
+        }
     })?;
     finish_transcribing(true);
     Ok(doc)
