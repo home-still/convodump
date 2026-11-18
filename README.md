@@ -111,7 +111,7 @@ under the lease:
 
 ```yaml
 engine:
-  wrapper: ["<scheduler>", "run", "--", ]
+  wrapper: ["<scheduler>", "run", "--"]
 ```
 
 ## HTTP API

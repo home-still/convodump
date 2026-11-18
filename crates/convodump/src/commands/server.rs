@@ -96,7 +96,13 @@ async fn prepare(cfg: &ConvodumpConfig) -> Result<(EngineInfo, std::path::PathBu
     })?;
     tool_output(&cfg.engine.ffprobe_bin, "-version").await?;
     tool_output(&cfg.engine.ffmpeg_bin, "-version").await?;
-    let version = tool_output(&cfg.engine.nemo_speech_bin, "--version").await?;
+    let raw_version = tool_output(&cfg.engine.nemo_speech_bin, "--version").await?;
+    // `nemo-speech --version` prints "nemo-speech 0.3.0"; keep just the version.
+    let version = raw_version
+        .strip_prefix(ENGINE_NAME)
+        .map(str::trim)
+        .unwrap_or(&raw_version)
+        .to_owned();
     let info = EngineInfo {
         name: ENGINE_NAME.into(),
         version,
